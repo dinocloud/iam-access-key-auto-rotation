@@ -101,7 +101,7 @@ EOF
 }
 
 # IAM Role Policy
-resource "aws_iam_role_policy" "test_policy" {
+resource "aws_iam_role_policy" "keys_rotation_policy" {
   name = "test_policy"
   role = aws_iam_role.iam_for_lambda.id
 
@@ -152,7 +152,7 @@ resource "aws_lambda_function" "iam_lambda" {
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   source_code_hash = filebase64sha256("lambda_function_payload.zip")
 
-  runtime = "nodejs12.x"
+  runtime = "Python 3.8"
 }
 
 # Outputs
@@ -162,4 +162,8 @@ output "rule" {
 
 output "sns_lambda" {
   value = aws_sns_topic.sns_lambda.arn
+}
+
+output "keys_rotation_policy" {
+  value = aws_iam_role_policy.keys_rotation_policy.arn
 }
