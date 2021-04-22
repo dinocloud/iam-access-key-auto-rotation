@@ -1,31 +1,33 @@
 terraform {
   required_version = "~> 0.14"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 3.0"
     }
   }
+
   backend "s3" {
     bucket  = "terraform-access-key-rotation"
     key     = "infra_rotation_keys.tfstate"
     region  = "us-east-1"
     encrypt = true
-    profile = "default"
+    profile = "dinocloud"
   }
 }
+
 provider "aws" {
   region  = "us-east-1"
-  profile = "default"
+  profile = "dinocloud"
 }
 
 locals {
   tags = {
-    #createdAt = timestamp()
-    createdBy = "pedro"
-    project   = "summa"
-    env       = "dev"
-    purpose   = "rotate automated access key"
+    createdBy = "pedro/sol"
+    project   = "POC"
+    env       = "test"
+    purpose   = "Automated Key Rotation"
   }
 }
 
@@ -34,13 +36,17 @@ resource "aws_config_config_rule" "rule" {
   name             = "access-keys-rotated"
   description      = "A config rule that checks whether the active access keys are rotated within the number of days specified in maxAccessKeyAge. The rule is NON_COMPLIANT if the access keys have not been rotated for more than maxAccessKeyAge number of days."
   input_parameters = "{\"maxAccessKeyAge\":\"90\"}"
+  
   source {
     owner             = "AWS"
     source_identifier = "ACCESS_KEYS_ROTATED"
   }
+  
   scope {
     compliance_resource_types = []
   }
+  
+  tags            = local.tags
 }
 
 # Create Event Rule for non-compliant objects and associated with config rule
@@ -66,6 +72,7 @@ resource "aws_cloudwatch_event_rule" "compliance_change" {
   }
 }
 PATTERN
+
   tags          = local.tags
 }
 
@@ -100,7 +107,14 @@ resource "aws_sns_topic" "sns_lambda" {
 EOF
 }
 
-# IAM Role Policy
+# topic subscription to lambda
+resource "aws_sns_topic_subscription" "lambda_target" {
+  topic_arn = aws_sns_topic.sns_lambda.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.iam_lambda.arn
+}
+
+# IAM Role Policy Lambda
 resource "aws_iam_role_policy" "keys_rotation_policy" {
   name = "test_policy"
   role = aws_iam_role.iam_for_lambda.id
@@ -111,17 +125,15 @@ resource "aws_iam_role_policy" "keys_rotation_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = [
-          "ec2:Describe*",
-        ]
-        Effect   = "Allow"
+        Action = "*",
+        Effect   = "Allow",
         Resource = "*"
       },
     ]
   })
 }
 
-# IAM Role
+# IAM Role Lambda
 resource "aws_iam_role" "iam_for_lambda" {
   name = "AWSRoleForLambdaAccessKeysRotationPocTEST_2"
 
@@ -138,21 +150,22 @@ resource "aws_iam_role" "iam_for_lambda" {
       },
     ]
   })
+
+  tags          = local.tags
 }
 
 # Lambda Fuction Python 3.8
 resource "aws_lambda_function" "iam_lambda" {
-  filename      = "iam_lambda.zip"
-  function_name = "lambda_function_name"
+  filename      = "access-key-rotation.zip"
+  function_name = "access-key-rotation"
   role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "exports.test"
+  handler       = "lambda_function.lambda_handler"
 
-  # The filebase64sha256() function is available in Terraform 0.11.12 and later
-  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  # source_code_hash = filebase64sha256("access-key-rotation.zip")
 
-  runtime = "Python 3.8"
+  runtime = "python3.8"
+  
+  tags          = local.tags
 }
 
 # Outputs
@@ -162,8 +175,4 @@ output "rule" {
 
 output "sns_lambda" {
   value = aws_sns_topic.sns_lambda.arn
-}
-
-output "keys_rotation_policy" {
-  value = aws_iam_role_policy.keys_rotation_policy.arn
 }
