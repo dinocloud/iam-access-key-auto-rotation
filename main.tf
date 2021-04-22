@@ -100,43 +100,66 @@ resource "aws_sns_topic" "sns_lambda" {
 EOF
 }
 
-# Create Lambda fuction python 3.8
-# resource "aws_iam_role" "iam_for_lambda" {
-#   name = "AWSRoleForLambdaAccessKeysRotationPoc"
+# IAM Role Policy
+resource "aws_iam_role_policy" "test_policy" {
+  name = "test_policy"
+  role = aws_iam_role.iam_for_lambda.id
 
-#   assume_role_policy = <<EOF
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Effect": "Allow",
-#             "Action": "*",
-#             "Resource": "*"
-#         }
-#     ]
-# }
-# EOF
-# }
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
 
-# resource "aws_lambda_function" "iam_lambda" {
-#   filename      = "iam_lambda.zip"
-#   function_name = "lambda_function_name"
-#   role          = aws_iam_role.iam_for_lambda.arn
-#   handler       = "exports.test"
+# IAM Role
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "AWSRoleForLambdaAccessKeysRotationPocTEST_2"
 
-#   # The filebase64sha256() function is available in Terraform 0.11.12 and later
-#   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-#   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-#   source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
 
-#   runtime = "nodejs12.x"
+# Lambda Fuction Python 3.8
+resource "aws_lambda_function" "iam_lambda" {
+  filename      = "iam_lambda.zip"
+  function_name = "lambda_function_name"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.test"
 
-#   environment {
-#     variables = {
-#       foo = "bar"
-#     }
-#   }
-# }
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+
+  runtime = "nodejs12.x"
+}
+
+# Outputs
 output "rule" {
   value = aws_config_config_rule.rule.arn
+}
+
+output "sns_lambda" {
+  value = aws_sns_topic.sns_lambda.arn
 }
