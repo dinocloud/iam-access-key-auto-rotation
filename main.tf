@@ -29,6 +29,10 @@ locals {
     env       = "test"
     purpose   = "Automated Key Rotation"
   }
+
+  mails = [ "pedro.bratti@dinocloudconsulting.com",
+            "sol.malisani@dinocloudconsulting.com"
+          ]
 }
 
 # Create Config Rule access_key_rotated
@@ -166,6 +170,38 @@ resource "aws_lambda_function" "iam_lambda" {
   runtime = "python3.8"
   
   tags          = local.tags
+}
+
+# Create SNS to send EMAILS
+resource "aws_sns_topic" "sns_email" {
+  name            = "AWSKeyRotationPOC-EMAIL"
+  delivery_policy = <<EOF
+{
+  "http": {
+    "defaultHealthyRetryPolicy": {
+      "minDelayTarget": 20,
+      "maxDelayTarget": 20,
+      "numRetries": 3,
+      "numMaxDelayRetries": 0,
+      "numNoDelayRetries": 0,
+      "numMinDelayRetries": 0,
+      "backoffFunction": "linear"
+    },
+    "disableSubscriptionOverrides": false,
+    "defaultThrottlePolicy": {
+      "maxReceivesPerSecond": 1
+    }
+  }
+}
+EOF
+}
+
+# Email suscription
+resource "aws_sns_topic_subscription" "email_target" {
+  count     = length(local.mails)
+  topic_arn = aws_sns_topic.sns_email.arn
+  protocol  = "email"
+  endpoint  = local.mails[count.index]
 }
 
 # Outputs
