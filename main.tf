@@ -204,6 +204,13 @@ resource "aws_sns_topic_subscription" "email_target" {
   endpoint  = local.mails[count.index]
 }
 
+# SES Para envio de mails
+resource "aws_ses_email_identity" "example" {
+  count     = length(local.mails)
+  email = local.mails[count.index]
+}
+
+
 # Outputs
 output "rule" {
   value = aws_config_config_rule.rule.arn
