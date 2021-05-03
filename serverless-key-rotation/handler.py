@@ -67,7 +67,30 @@ def lambda_handler(event, context):
     # resourceId = resourceId["resourceId"]
     resourceId = "AIDAW6MN5QPJPMC7R4QBE"
  
-    listKeys(resourceId)
+    username = getUser(resourceId)
+    keys = iam_client.list_access_keys(UserName=username)
+
+    if len(keys['AccessKeyMetadata']) == 2:
+        d1=keys['AccessKeyMetadata'][0]['CreateDate']
+        d2=keys['AccessKeyMetadata'][1]['CreateDate']
+        if d1 < d2:
+            delete_key=keys['AccessKeyMetadata'][0]
+            disable_key=keys['AccessKeyMetadata'][1]
+        else:
+            delete_key=keys['AccessKeyMetadata'][1]
+            disable_key=keys['AccessKeyMetadata'][0]   
+        deleteKey(delete_key)
+    else:
+        disable_key=keys['AccessKeyMetadata'][0] 
+
+    
+    disableKey(disable_key)
+    new_key = createKey(username)
+
+    mail = getUserMail(username)
+
+    sendMail(mail, username, new_key, disable_key, delete_key)
+
     return resourceId
     
 def getUser(resourceId):
@@ -78,10 +101,7 @@ def getUser(resourceId):
         if user['UserId'] == resourceId and user['UserName'] not in exclude_users: 
             return user['UserName']
             
-def listKeys(resourceId): 
-    username = getUser(resourceId)
-    keys = iam_client.list_access_keys(UserName=username)
-    
+def listKeys(username, keys):     
     # si el usuario tiene mas de una access key borra la mas antigua y deshabilita la otra
     if len(keys['AccessKeyMetadata']) == 2:
         d1=keys['AccessKeyMetadata'][0]['CreateDate']
@@ -93,19 +113,21 @@ def listKeys(resourceId):
             delete_key=keys['AccessKeyMetadata'][1]
             disable_key=keys['AccessKeyMetadata'][0]
         
-        # desabilitar la key existe mas reciente
-        disableKey(disable_key)
-        # borrar key mas vieja
-        deleteKey(delete_key)
-        # create new key
-        createKey(username)
+        return disable_key, delete_key
+        # # desabilitar la key existe mas reciente
+        # disableKey(disable_key)
+        # # borrar key mas vieja
+        # deleteKey(delete_key)
+        # # create new key
+        # createKey(username)
         
     else:
-        oldKey=keys['AccessKeyMetadata'][0] # en el caso q tenga una sola esta siempre va a ser la vieja
+        disable_key=keys['AccessKeyMetadata'][0] # en el caso q tenga una sola esta siempre va a ser la vieja
         # disable old key
-        disableKey(oldKey)
+        # disableKey(oldKey)
         # create new key
-        createKey(username)
+        # createKey(username)
+        return disable_key
     
 def disableKey(key):
     ak = key['AccessKeyId']
@@ -125,17 +147,13 @@ def deleteKey(key):
         AccessKeyId=ak,
         UserName=un
     )
-
     
 def createKey(username):
     response = iam_client.create_access_key(
         UserName=username
     )
-    print("New keys:")
-    print(response)
-    
-    sendMail(username)
-    
+    return response
+      
 # busca el mail del usuario en el tag mail
 def getUserMail(username):
     
@@ -148,25 +166,24 @@ def getUserMail(username):
             mail = tag['Value']
             return mail
 
-def sendMail(username):
-    email = getUserMail(username)
-    print("TEST")
-    print(email)
-    
-    response = ses_client.send_email(
+def sendMail(mail, username, new_key, disable_key, delete_key):
+
+    BODY_TEXT = "Hubo una rotación en las Access Keys del usuario: " + username + "\r\n" + "Se desahibilitó la AccessKeyId: " + disable_key['AccessKeyId'] +  "\r\n" + "Y se elimino la AccessKeyId: " + delete_key['AccessKeyId'] + "\r\n \r\n Sus nuevas credenciales son: \r\n" + new_key['AccessKey']['AccessKeyId'] + "\r\n" + new_key['AccessKey']['SecretAccessKey'] + "\r\n \r\n \r\n Este email fue enviado de forma automática a través de Amazon SES."
+            
+    ses_client.send_email(
     Source='sol.malisani@dinocloudconsulting.com',
     Destination={
         'ToAddresses': [
-            email,
+            mail,
         ]
     },
     Message={
         'Subject': {
-            'Data': 'La vi con otra paloma'
+            'Data': 'Renovación de keys'
         },
         'Body': {
             'Text': {
-                'Data': 'me wa a mata wii'
+                'Data': BODY_TEXT
             }
         }
     }
