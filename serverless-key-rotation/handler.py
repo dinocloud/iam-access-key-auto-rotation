@@ -2,10 +2,12 @@ import boto3
 from botocore.exceptions import ClientError
 import datetime
 import json
+import urllib3
 
 # inicia el cliente de iam
 iam_client = boto3.client('iam')
 ses_client = boto3.client('ses')
+sm_client = boto3.client('secretsmanager')
 
 # lista de usuarios a excluir en la rotacion automatica
 exclude_users=["fsalonia", "validators-app-prod"]
@@ -89,6 +91,8 @@ def lambda_handler(event, context):
 
     mail = getUserMail(username)
 
+    createSecret(username, new_key)
+
     sendMail(mail, username, new_key, disable_key, delete_key)
 
     return resourceId
@@ -165,6 +169,32 @@ def getUserMail(username):
         if tag['Key'] == 'mail':
             mail = tag['Value']
             return mail
+
+def createSecret(username, new_key):
+    AccessKeyId = new_key['AccessKey']['AccessKeyId']
+    SecretAccessKey = new_key['AccessKey']['SecretAccessKey']
+
+    secret_name = "Access_keys9_" + username
+    # secret="'{'AccessKeyId':" + AccessKeyId + ",'SecretAccessKey':" + SecretAccessKey + "}'"
+   
+    # secret={"AccessKeyId":AccessKeyId,"SecretAccessKey":SecretAccessKey}
+    # secret = urllib3.quote("'{}'".format(secret))
+
+    secret='{"username":f'"{AccessKeyId}"',"password":"BnQw!XDWgaEeT9XGTT29"}'
+
+    response = sm_client.create_secret(
+        Name=secret_name,
+        Description='New Access Keys',
+        SecretString=secret,
+        Tags=[
+            {
+                'Key': 'Owner',
+                'Value': username
+            },
+        ],
+    )
+
+    print(response)
 
 def sendMail(mail, username, new_key, disable_key, delete_key):
 
