@@ -178,6 +178,7 @@ def createSecret(username, new_key):
     SecretAccessKey = new_key['AccessKey']['SecretAccessKey']
 
     secret_name = "/aws/iam/credentials/" + username
+
     data = {
         "AccessKey": AccessKeyId,
         "SecretAccessKey": SecretAccessKey
@@ -204,23 +205,25 @@ def updateSecret(username, new_key):
     SecretAccessKey = new_key['AccessKey']['SecretAccessKey']
 
     secret_name = "/aws/iam/credentials/" + username
+
     data = {
         "AccessKey": AccessKeyId,
         "SecretAccessKey": SecretAccessKey
         }
+
     secret=json.dumps(data)
 
     filter = [ 
         {
             'Key': 'tag-value',
-            'Values': [ username],
+            'Values': [username],
         } ]
-    #filter=json.dumps(filter)
     
     list_secret = sm_client.list_secrets(
     MaxResults=1,
     Filters=filter
     )
+
     secretID = list_secret['SecretList'][0]['ARN']
 
     response = sm_client.update_secret  (
@@ -234,9 +237,16 @@ def updateSecret(username, new_key):
 def sendMail(mail, username, new_key, disable_key, delete_key):
 
 
-    url = "https://console.aws.amazon.com/secretsmanager/home?region=us-east-1#!/secret?name=" + secret_name
+    url = "https://console.aws.amazon.com/secretsmanager/home?region=us-east-1#!/listSecrets"
 
-    BODY_TEXT = "Hubo una rotación en las Access Keys del usuario: " + username + "\r\n" + "Se desahibilitó la AccessKeyId: " + disable_key['AccessKeyId'] +  "\r\n" + "Y se elimino la AccessKeyId: " + delete_key['AccessKeyId'] + "\r\n \r\n Sus nuevas credenciales son: \r\n" + new_key['AccessKey']['AccessKeyId'] + "\r\n" + new_key['AccessKey']['SecretAccessKey'] + "\r\n \r\n \r\n Este email fue enviado de forma automática a través de Amazon SES."
+    BODY_TEXT = "Hubo una rotación en las Access Keys del usuario: " + username + "\r\n" + "Se desahibilitó la AccessKeyId: " + disable_key['AccessKeyId'] +  "\r\n" + "Y se elimino la AccessKeyId: " + delete_key['AccessKeyId'] + "\r\n \r\n Sus nuevas credenciales son: \r\n" 
+
+    BODY_TEXT = "Hubo una rotación de Access Keys de tu Usuario \r\n"
+    "Se desahibilitó la AccessKeyId: \r\n" + disable_key['AccessKeyId']
+    "Se elimino la AccessKeyId: \r\n" + delete_key['AccessKeyId']
+    "Las nuevas credenciales: Secret Name /aws/iam/credentials/ \r\n" + username
+    "https://console.aws.amazon.com/secretsmanager/home?region=us-east-1#!/listSecrets Dashboard Secret Manager \r\n"    
+    # + new_key['AccessKey']['AccessKeyId'] + "\r\n" + new_key['AccessKey']['SecretAccessKey'] + "\r\n \r\n \r\n Este email fue enviado de forma automática a través de Amazon SES."
             
     ses_client.send_email(
     Source='sol.malisani@dinocloudconsulting.com',
@@ -247,7 +257,7 @@ def sendMail(mail, username, new_key, disable_key, delete_key):
     },
     Message={
         'Subject': {
-            'Data': 'Renovación de keys'
+            'Data': 'Rotación de Access Keys'
         },
         'Body': {
             'Text': {
