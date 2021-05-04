@@ -2,7 +2,6 @@ import boto3
 from botocore.exceptions import ClientError
 import datetime
 import json
-import urllib3
 
 # inicia el cliente de iam
 iam_client = boto3.client('iam')
@@ -89,11 +88,14 @@ def lambda_handler(event, context):
     disableKey(disable_key)
     new_key = createKey(username)
 
-    mail = getUserMail(username)
+    #mail = getUserMail(username)
 
-    createSecret(username, new_key)
+    try:
+        createSecret(username, new_key)
+    except Exception as e: 
+        updateSecret(username, new_key)
 
-    sendMail(mail, username, new_key, disable_key, delete_key)
+     # sendMail(mail, username, new_key, disable_key, delete_key)
 
     return resourceId
     
@@ -132,7 +134,8 @@ def listKeys(username, keys):
         # create new key
         # createKey(username)
         return disable_key
-    
+
+            
 def disableKey(key):
     ak = key['AccessKeyId']
     un = key['UserName']
@@ -174,13 +177,13 @@ def createSecret(username, new_key):
     AccessKeyId = new_key['AccessKey']['AccessKeyId']
     SecretAccessKey = new_key['AccessKey']['SecretAccessKey']
 
-    secret_name = "Access_keys9_" + username
-    # secret="'{'AccessKeyId':" + AccessKeyId + ",'SecretAccessKey':" + SecretAccessKey + "}'"
-   
-    # secret={"AccessKeyId":AccessKeyId,"SecretAccessKey":SecretAccessKey}
-    # secret = urllib3.quote("'{}'".format(secret))
+    secret_name = "/aws/iam/credentials/" + username
+    data = {
+        "AccessKey": AccessKeyId,
+        "SecretAccessKey": SecretAccessKey
+        }
 
-    secret='{"username":f'"{AccessKeyId}"',"password":"BnQw!XDWgaEeT9XGTT29"}'
+    secret=json.dumps(data)
 
     response = sm_client.create_secret(
         Name=secret_name,
@@ -196,7 +199,42 @@ def createSecret(username, new_key):
 
     print(response)
 
+def updateSecret(username, new_key):
+    AccessKeyId = new_key['AccessKey']['AccessKeyId']
+    SecretAccessKey = new_key['AccessKey']['SecretAccessKey']
+
+    secret_name = "/aws/iam/credentials/" + username
+    data = {
+        "AccessKey": AccessKeyId,
+        "SecretAccessKey": SecretAccessKey
+        }
+    secret=json.dumps(data)
+
+    filter = [ 
+        {
+            'Key': 'tag-value',
+            'Values': [ username],
+        } ]
+    #filter=json.dumps(filter)
+    
+    list_secret = sm_client.list_secrets(
+    MaxResults=1,
+    Filters=filter
+    )
+    secretID = list_secret['SecretList'][0]['ARN']
+
+    response = sm_client.update_secret  (
+        SecretId=secretID,
+        Description='Actualizada',
+        SecretString=secret
+    )
+
+    print(response)
+
 def sendMail(mail, username, new_key, disable_key, delete_key):
+
+
+    url = "https://console.aws.amazon.com/secretsmanager/home?region=us-east-1#!/secret?name=" + secret_name
 
     BODY_TEXT = "Hubo una rotación en las Access Keys del usuario: " + username + "\r\n" + "Se desahibilitó la AccessKeyId: " + disable_key['AccessKeyId'] +  "\r\n" + "Y se elimino la AccessKeyId: " + delete_key['AccessKeyId'] + "\r\n \r\n Sus nuevas credenciales son: \r\n" + new_key['AccessKey']['AccessKeyId'] + "\r\n" + new_key['AccessKey']['SecretAccessKey'] + "\r\n \r\n \r\n Este email fue enviado de forma automática a través de Amazon SES."
             

@@ -13,13 +13,13 @@ terraform {
     key     = "infra_rotation_keys.tfstate"
     region  = "us-east-1"
     encrypt = true
-    profile = "dinocloud"
+    profile = "default"
   }
 }
 
 provider "aws" {
   region  = "us-east-1"
-  profile = "dinocloud"
+  profile = "default"
 }
 
 locals {
@@ -129,7 +129,19 @@ resource "aws_iam_role_policy" "keys_rotation_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "*",
+        Action = [
+           "ses:SendEmail",
+           "iam:DeleteAccessKey",
+           "logs:CreateLogStream",
+           "ses:SendRawEmail",
+           "iam:UpdateAccessKey",
+           "iam:ListUsers",
+           "logs:CreateLogGroup",
+           "logs:PutLogEvents",
+           "iam:ListUserTags",
+           "iam:CreateAccessKey",
+           "iam:ListAccessKeys"
+        ],
         Effect   = "Allow",
         Resource = "*"
       },
@@ -172,40 +184,8 @@ resource "aws_lambda_function" "iam_lambda" {
   tags          = local.tags
 }
 
-# Create SNS to send EMAILS
-resource "aws_sns_topic" "sns_email" {
-  name            = "AWSKeyRotationPOC-EMAIL"
-  delivery_policy = <<EOF
-{
-  "http": {
-    "defaultHealthyRetryPolicy": {
-      "minDelayTarget": 20,
-      "maxDelayTarget": 20,
-      "numRetries": 3,
-      "numMaxDelayRetries": 0,
-      "numNoDelayRetries": 0,
-      "numMinDelayRetries": 0,
-      "backoffFunction": "linear"
-    },
-    "disableSubscriptionOverrides": false,
-    "defaultThrottlePolicy": {
-      "maxReceivesPerSecond": 1
-    }
-  }
-}
-EOF
-}
-
-# Email suscription
-resource "aws_sns_topic_subscription" "email_target" {
-  count     = length(local.mails)
-  topic_arn = aws_sns_topic.sns_email.arn
-  protocol  = "email"
-  endpoint  = local.mails[count.index]
-}
-
 # SES Para envio de mails
-resource "aws_ses_email_identity" "example" {
+resource "aws_ses_email_identity" "ses_mails" {
   count     = length(local.mails)
   email = local.mails[count.index]
 }
