@@ -3,61 +3,13 @@ from botocore.exceptions import ClientError
 import datetime
 import json
 
-# inicia el cliente de iam
+# iniciación de clientes
 iam_client = boto3.client('iam')
 ses_client = boto3.client('ses')
 sm_client = boto3.client('secretsmanager')
 
 # lista de usuarios a excluir en la rotacion automatica
 exclude_users=["fsalonia", "validators-app-prod"]
-
-event = {
-    "version": "0",
-    "id": "c0bb891c-77fe-8518-14fc-be78b966f95b",
-    "detail-type": "Config Rules Compliance Change",
-    "source": "aws.config",
-    "account": "477575873490",
-    "time": "2021-04-19T19:04:05Z",
-    "region": "us-east-1",
-    "resources": [],
-    "detail": {
-        "resourceId": "AIDAW6MN5QPJPMC7R4QBE",
-        "awsRegion": "us-east-1",
-        "awsAccountId": "477575873490",
-        "configRuleName": "access-keys-rotated",
-        "recordVersion": "1.0",
-        "configRuleARN": "arn:aws:config:us-east-1:477575873490:config-rule/config-rule-eguym2",
-        "messageType": "ComplianceChangeNotification",
-        "newEvaluationResult": {
-            "evaluationResultIdentifier": {
-                "evaluationResultQualifier": {
-                    "configRuleName": "access-keys-rotated",
-                    "resourceType": "AWS::IAM::User",
-                    "resourceId": "AIDAW6MN5QPJPMC7R4QBE"
-                },
-                "orderingTimestamp": "2021-04-19T19:03:50.251Z"
-            },
-            "complianceType": "NON_COMPLIANT",
-            "resultRecordedTime": "2021-04-19T19:04:04.741Z",
-            "configRuleInvokedTime": "2021-04-19T19:04:04.332Z"
-        },
-        "oldEvaluationResult": {
-            "evaluationResultIdentifier": {
-                "evaluationResultQualifier": {
-                    "configRuleName": "access-keys-rotated",
-                    "resourceType": "AWS::IAM::User",
-                    "resourceId": "AIDAW6MN5QPJPMC7R4QBE"
-                },
-                "orderingTimestamp": "2021-04-19T19:02:33.749Z"
-            },
-            "complianceType": "COMPLIANT",
-            "resultRecordedTime": "2021-04-19T19:02:44.919Z",
-            "configRuleInvokedTime": "2021-04-19T19:02:44.583Z"
-        },
-        "notificationCreationTime": "2021-04-19T19:04:05.751Z",
-        "resourceType": "AWS::IAM::User"
-    }
-}
 
 def lambda_handler(event, context):
     # message = json.loads(event['Records'][0]['Sns']['Message'])
@@ -80,22 +32,24 @@ def lambda_handler(event, context):
         else:
             delete_key=keys['AccessKeyMetadata'][1]
             disable_key=keys['AccessKeyMetadata'][0]   
-        deleteKey(delete_key)
     else:
         disable_key=keys['AccessKeyMetadata'][0] 
+        delete_key=""
 
     
     disableKey(disable_key)
+    deleteKey(delete_key)
+
     new_key = createKey(username)
 
-    #mail = getUserMail(username)
+    mail = getUserMail(username)
 
     try:
         createSecret(username, new_key)
     except Exception as e: 
         updateSecret(username, new_key)
 
-     # sendMail(mail, username, new_key, disable_key, delete_key)
+    sendMail(mail, username, disable_key, delete_key)
 
     return resourceId
     
@@ -106,36 +60,7 @@ def getUser(resourceId):
     for user in response['Users']:
         if user['UserId'] == resourceId and user['UserName'] not in exclude_users: 
             return user['UserName']
-            
-def listKeys(username, keys):     
-    # si el usuario tiene mas de una access key borra la mas antigua y deshabilita la otra
-    if len(keys['AccessKeyMetadata']) == 2:
-        d1=keys['AccessKeyMetadata'][0]['CreateDate']
-        d2=keys['AccessKeyMetadata'][1]['CreateDate']
-        if d1 < d2:
-            delete_key=keys['AccessKeyMetadata'][0]
-            disable_key=keys['AccessKeyMetadata'][1]
-        else:
-            delete_key=keys['AccessKeyMetadata'][1]
-            disable_key=keys['AccessKeyMetadata'][0]
-        
-        return disable_key, delete_key
-        # # desabilitar la key existe mas reciente
-        # disableKey(disable_key)
-        # # borrar key mas vieja
-        # deleteKey(delete_key)
-        # # create new key
-        # createKey(username)
-        
-    else:
-        disable_key=keys['AccessKeyMetadata'][0] # en el caso q tenga una sola esta siempre va a ser la vieja
-        # disable old key
-        # disableKey(oldKey)
-        # create new key
-        # createKey(username)
-        return disable_key
-
-            
+         
 def disableKey(key):
     ak = key['AccessKeyId']
     un = key['UserName']
@@ -147,13 +72,14 @@ def disableKey(key):
     )
 
 def deleteKey(key):
-    ak = key['AccessKeyId']
-    un = key['UserName']
-    
-    iam_client.delete_access_key(
-        AccessKeyId=ak,
-        UserName=un
-    )
+    if (key != ""):
+        ak = key['AccessKeyId']
+        un = key['UserName']
+        
+        iam_client.delete_access_key(
+            AccessKeyId=ak,
+            UserName=un
+        )
     
 def createKey(username):
     response = iam_client.create_access_key(
@@ -186,7 +112,7 @@ def createSecret(username, new_key):
 
     secret=json.dumps(data)
 
-    response = sm_client.create_secret(
+    sm_client.create_secret(
         Name=secret_name,
         Description='New Access Keys',
         SecretString=secret,
@@ -198,13 +124,10 @@ def createSecret(username, new_key):
         ],
     )
 
-    print(response)
 
 def updateSecret(username, new_key):
     AccessKeyId = new_key['AccessKey']['AccessKeyId']
     SecretAccessKey = new_key['AccessKey']['SecretAccessKey']
-
-    secret_name = "/aws/iam/credentials/" + username
 
     data = {
         "AccessKey": AccessKeyId,
@@ -226,46 +149,81 @@ def updateSecret(username, new_key):
 
     secretID = list_secret['SecretList'][0]['ARN']
 
-    response = sm_client.update_secret  (
+    sm_client.update_secret  (
         SecretId=secretID,
         Description='Actualizada',
         SecretString=secret
     )
 
-    print(response)
 
-def sendMail(mail, username, new_key, disable_key, delete_key):
-
-
+def sendMail(mail, username, disable_key, delete_key):
     url = "https://console.aws.amazon.com/secretsmanager/home?region=us-east-1#!/listSecrets"
+    disable_key = disable_key['AccessKeyId']
+    if (delete_key != ""):
+        delete_key = delete_key['AccessKeyId']
 
-    BODY_TEXT = "Hubo una rotación en las Access Keys del usuario: " + username + "\r\n" + "Se desahibilitó la AccessKeyId: " + disable_key['AccessKeyId'] +  "\r\n" + "Y se elimino la AccessKeyId: " + delete_key['AccessKeyId'] + "\r\n \r\n Sus nuevas credenciales son: \r\n" 
-
-    BODY_TEXT = "Hubo una rotación de Access Keys de tu Usuario \r\n"
-    "Se desahibilitó la AccessKeyId: \r\n" + disable_key['AccessKeyId']
-    "Se elimino la AccessKeyId: \r\n" + delete_key['AccessKeyId']
-    "Las nuevas credenciales: Secret Name /aws/iam/credentials/ \r\n" + username
-    "https://console.aws.amazon.com/secretsmanager/home?region=us-east-1#!/listSecrets Dashboard Secret Manager \r\n"    
-    # + new_key['AccessKey']['AccessKeyId'] + "\r\n" + new_key['AccessKey']['SecretAccessKey'] + "\r\n \r\n \r\n Este email fue enviado de forma automática a través de Amazon SES."
+    SENDER = "pedro.bratti@dinocloudconsulting.com"
+    CHARSET = "UTF-8"
+    SUBJECT = "Sus Access Keys han sido rotadas de forma automática"
+    RECIPIENT = mail
+       
             
+    BODY_HTML = """<html>
+    <head></head>
+    <body>
+    <h3>Username {username}</h3>
+    <p><ul>
+            <li>Se ha desahibilitado la AccessKeyId: <b>{disable_key}</b></li>
+        </ul>
+        Visualice su nueva clave en AWS Secret Manager: <a href={url}>{url}</a> através del secreto: <b>/aws/iam/credentials/{username}</b>.
+        <br/><br/>
+        <i>Este email fue enviado de forma automática a través de Amazon SES</i>.
+    </p>
+    </body>
+    </html>
+                """.format(**locals())
+    
+    
+    if (delete_key != ""):
+        BODY_HTML = """<html>
+        <head></head>
+        <body>
+        <h3>Username {username}</h3>
+        <p><ul>
+                <li>Se ha desahibilitado la AccessKeyId: <b>{disable_key}</b></li>
+                <li>Se ha eliminado la AccessKeyId: <b>{delete_key}</b></li>
+            </ul>
+            Visualice su nueva clave en AWS Secret Manager: <a href={url}>{url}</a> através del secreto: <b>/aws/iam/credentials/{username}</b>.
+            <br/><br/>
+            <i>Este email fue enviado de forma automática a través de Amazon SES</i>.
+        </p>
+        </body>
+        </html>
+                    """.format(**locals())
+    
+
     ses_client.send_email(
-    Source='sol.malisani@dinocloudconsulting.com',
-    Destination={
-        'ToAddresses': [
-            mail,
-        ]
-    },
-    Message={
-        'Subject': {
-            'Data': 'Rotación de Access Keys'
+        Destination={
+            'ToAddresses': [
+                RECIPIENT,
+            ],
         },
-        'Body': {
-            'Text': {
-                'Data': BODY_TEXT
-            }
-        }
-    }
-)
+        Message={
+            'Body': {
+                'Html': {
+                    'Charset': CHARSET,
+                    'Data': BODY_HTML,
+                },
+                
+            },
+            'Subject': {
+                'Charset': CHARSET,
+                'Data': SUBJECT,
+            },
+        },
+        Source=SENDER,
+
+    )
 
 def verify_email_identity(email):
     response = ses_client.verify_email_identity(
