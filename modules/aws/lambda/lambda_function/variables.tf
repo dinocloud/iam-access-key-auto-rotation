@@ -17,3 +17,5 @@ variable "runtime" {
 }
 
 variable "tags" {}
+
+variable "source_arn" {}

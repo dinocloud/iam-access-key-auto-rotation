@@ -100,14 +100,7 @@ module "lambda_access_key_rotation" {
   handler             = var.handler
   runtime             = var.runtime
   tags                = var.tags
-}
-
-resource "aws_lambda_permission" "with_sns" {
-  statement_id  = "AllowExecutionFromSNS"
-  action        = "lambda:InvokeFunction"
-  function_name = var.lambda_funcion_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = module.sns_topic.arn
+  source_arn          = module.sns_topic.arn
 }
 
 module "ses_access_key_rotation" {

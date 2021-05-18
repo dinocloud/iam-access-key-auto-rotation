@@ -1,6 +1,6 @@
 ## access key rotation
 variable "input_parameters" { 
-    default = "{\"maxAccessKeyAge\":\"90\"}"
+    default = "{\"maxAccessKeyAge\":\"0\"}"
 }
 
 variable "target_id" {
@@ -15,4 +15,10 @@ variable "runtime" {
     default = "python3.8"
 }
 
-variable "emails_list" {}
+variable "application" {
+    default = "DinoCloud"
+}
+
+variable "environment" {
+    default = "test"
+}

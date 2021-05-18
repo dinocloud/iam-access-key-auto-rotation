@@ -14,27 +14,30 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "xx"
-    key     = "xx.tfstate"
+    bucket  = "terraform-access-key-rotation"
+    key     = "terraform-access-key-rotation.tfstate"
     region  = "us-east-1"
     encrypt = true
-    profile = "xx"
+    profile = "dinocloud"
   }
 }
 
 provider "aws" {
   region  = "us-east-1"
-  profile = "xx"
+  profile = "dinocloud"
 }
 
 
 locals {
    tags = {
-    createdBy   = "DinoCloud"
+    createdBy   = "DinoCloud-pedro-sol"
     env         = "Production"
     purpose     = "Access Key Rotation"
     Terraform   = true
   }
+
+  # emails a los qua vas a suscribir a SES
+  emails_list = ["sol.malisani@dinocloudconsulting.com", "pedro.bratti@dinocloudconsulting.com"]
 
 }
 
@@ -50,8 +53,8 @@ module "automated_key_rotation" {
   lambda_funcion_name               = "${var.application}-${var.environment}-access-key-lambda_function"
   handler                           = var.handler
   runtime                           = var.runtime
-  emails_count                      = length(var.emails_list)
-  emails_list                       = var.emails_list
+  emails_count                      = length(local.emails_list)
+  emails_list                       = local.emails_list
 
   tags                              = local.tags
 }
