@@ -16,8 +16,45 @@ Librerias y clientes de boto3 a usar
 
 <img src="/images/libreriasclientes.png" alt="libimg" width="500"/>
 
+Variables para setear los usuarios que se deben incluir/excluir en este proceso
 
+<img src="/images/globalenvs.png" alt="genvs" width="500"/>
 
+Handler de la funcion
+
+<img src="/images/handler.png" alt="handler" width="500"/>
+
+Def getUser
+
+<img src="/images/1getuser.png" alt="gu" width="500"/>
+
+Def disableKey
+
+<img src="/images/2disablekey.png" alt="dk" width="500"/>
+
+Def deleteKey
+
+<img src="/images/3deletekey.png" alt="dtk" width="500"/>
+
+Def createKey
+
+<img src="/images/4createkey.png" alt="ck" width="500"/>
+
+Def getUserMail
+
+<img src="/images/5getuseremail.png" alt="gum" width="500"/>
+
+Def createSecret
+
+<img src="/images/6createsecret.png" alt="cs" width="500"/>
+
+Def updateSecret
+
+<img src="/images/7updatesecret.png" alt="us" width="500"/>
+
+Def sendEmail
+
+<img src="/images/8sendemail.png" alt="se" width="500"/>
 
 ## Terraform
 
