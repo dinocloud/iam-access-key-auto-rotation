@@ -22,7 +22,7 @@ Variables para setear los usuarios que se deben incluir/excluir en este proceso
 
 Handler de la funcion
 
-<img src="/images/handler.png" alt="handler" width="500"/>
+<img src="/images/handler.png" alt="handler" width="700"/>
 
 Def getUser
 
