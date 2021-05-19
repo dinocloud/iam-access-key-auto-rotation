@@ -94,7 +94,7 @@ Solucion Propuesta:
 │       ├── main.tf
 │       └── variables.tf
 ├── layer
-│   └── test
+│   └── automated_key_rotation
 │       ├── access-key-rotation.py
 │       ├── main.tf
 │       ├── output.tf
