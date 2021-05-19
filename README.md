@@ -89,37 +89,39 @@ Solucion Propuesta:
 ### Terraform Estructura Modulos
 
 ```bash
+
 ├── environment
 │   └── test
 │       ├── main.tf
 │       └── variables.tf
-├── layer
-│   └── automated_key_rotation
-│       ├── access-key-rotation.py
-│       ├── main.tf
-│       ├── output.tf
-│       └── variables.tf
-└── aws
-    ├── aws_config
-    │   ├── main.tf
-    │   ├── output.tf
-    │   └── variables.tf
-    ├── cloudwatch
-    │   ├── main.tf
-    │   ├── output.tf
-    │   └── variables.tf
-    ├── lambda
-    │   ├── main.tf
-    │   ├── output.tf
-    │   └── variables.tf
-    ├── ses
-    │   ├── main.tf
-    │   ├── output.tf
-    │   └── variables.tf
-    └── sns
-        ├── main.tf
-        ├── output.tf
-        └── variables.tf
+└── modules
+    ├── layer
+    │   └── automated_key_rotation
+    │       ├── access-key-rotation.py
+    │       ├── main.tf
+    │       ├── output.tf
+    │       └── variables.tf
+    └── aws
+        ├── aws_config
+        │   ├── main.tf
+        │   ├── output.tf
+        │   └── variables.tf
+        ├── cloudwatch
+        │   ├── main.tf
+        │   ├── output.tf
+        │   └── variables.tf
+        ├── lambda
+        │   ├── main.tf
+        │   ├── output.tf
+        │   └── variables.tf
+        ├── ses
+        │   ├── main.tf
+        │   ├── output.tf
+        │   └── variables.tf
+        └── sns
+            ├── main.tf
+            ├── output.tf
+            └── variables.tf
 ```
 
 La estrategia implementada en Terraform tiene 3 tiers: 
