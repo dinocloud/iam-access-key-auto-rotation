@@ -14,7 +14,7 @@ Logica de la AWS Lambda Function en Python 3.8 para realizar las siguientes acci
 
 Librerias y clientes de boto3 a usar
 
-![libcli](/images/libreriascliente.png){width='100px'}
+![libcli](/images/libreriasclientes.png)
 
 
 
@@ -37,7 +37,7 @@ Modulo de terraform para deployar una solucion para poder rotar las Access Key d
 
 Solucion Propuesta:
 
-![solution](/images/Access_Keys_Automated_Rotation.jpg){width='100px'}
+![solution](/images/Access_Keys_Automated_Rotation.jpg)
 
 1. Se configura una AWS Config Rule que va a estar evaluando de forma periodica la edad de las Access Keys de todos los IAM Users que tengan acceso programatico y tengan un Access Key creada. A la regla vamos a definirle un parametro llamado maxAccessKeyAge con el cual vamos a determinar la cantidad de dias maxima, en numeros enteros, que una Access Key pueden tener de vida (Por ejemplo si seteamos 90 dias las Acces Keys con 91 dias desde su creación van a ser marcadas por la AWS Config Rule). Las Access Key que superen los dias seteados en el parametro van a ser marcados con el estado "Non-Compliant" y las que esten debajo del parametro como "Compliant".
 
