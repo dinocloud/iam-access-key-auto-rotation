@@ -12,11 +12,17 @@ resource "aws_cloudwatch_event_rule" "compliance_change" {
     "configRuleARN": [
       "${var.config_rule_arn}"
     ],
+    "messageType": [
+      "ComplianceChangeNotification"
+    ],
+    "configRuleName": [
+      "DinoCloud-test-access-key-config-rule"
+    ],
     "newEvaluationResult": {
-            "complianceType": [
-                "NON_COMPLIANT"
-            ]
-        }
+      "complianceType": [
+        "NON_COMPLIANT"
+      ]
+    }
   }
 }
 PATTERN

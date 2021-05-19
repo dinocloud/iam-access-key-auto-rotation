@@ -10,7 +10,7 @@ sm_client = boto3.client('secretsmanager')
 # Lista de usuarios a excluir en la rotacion automatica, separados por comas
 exclude_users=[""]
 # Lista de usuarios a incluir en la rotacion automatica, separados por comas
-include_users=[""] 
+include_users=["AWSUserAccessKeysRotationPoC"] 
 
 # Metodo que procesa todos los eventos
 def lambda_handler(event, context):
