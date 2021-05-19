@@ -26,7 +26,7 @@ Handler de la funcion
 
 Def getUser
 
-<img src="/images/1getuser.png" alt="gu" width="700/>
+<img src="/images/1getuser.png" alt="gu" width="600/>
 
 Def disableKey
 
