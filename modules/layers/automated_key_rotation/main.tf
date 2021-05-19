@@ -57,7 +57,8 @@ resource "aws_iam_role_policy" "keys_rotation_policy" {
            "secretsmanager:UpdateSecret",
            "secretsmanager:CreateSecret",
            "secretsmanager:PutSecretValue",
-           "secretsmanager:TagResource"
+           "secretsmanager:TagResource",
+           "secretsmanager:ListSecrets"
         ],
         Effect   = "Allow",
         Resource = "*"
