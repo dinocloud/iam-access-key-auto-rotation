@@ -18,7 +18,7 @@ Librerias y clientes de boto3 a usar
 
 Variables para setear los usuarios que se deben incluir/excluir en este proceso
 
-<img src="/images/globalenvs.png" alt="genvs" width="500"/>
+<img src="/images/globalenvs.png" alt="genvs" width="700"/>
 
 Handler de la funcion
 
