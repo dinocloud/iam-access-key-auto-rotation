@@ -26,35 +26,35 @@ Handler de la funcion
 
 Def getUser
 
-<img src="/images/1getuser.png" alt="gu" width="500"/>
+<img src="/images/1getuser.png" alt="gu" width="700/>
 
 Def disableKey
 
-<img src="/images/2disablekey.png" alt="dk" width="500"/>
+<img src="/images/2disablekey.png" alt="dk" width="700"/>
 
 Def deleteKey
 
-<img src="/images/3deletekey.png" alt="dtk" width="500"/>
+<img src="/images/3deletekey.png" alt="dtk" width="700"/>
 
 Def createKey
 
-<img src="/images/4createkey.png" alt="ck" width="500"/>
+<img src="/images/4createkey.png" alt="ck" width="700"/>
 
 Def getUserMail
 
-<img src="/images/5getuseremail.png" alt="gum" width="500"/>
+<img src="/images/5getuseremail.png" alt="gum" width="700"/>
 
 Def createSecret
 
-<img src="/images/6createsecret.png" alt="cs" width="500"/>
+<img src="/images/6createsecret.png" alt="cs" width="700"/>
 
 Def updateSecret
 
-<img src="/images/7updatesecret.png" alt="us" width="500"/>
+<img src="/images/7updatesecret.png" alt="us" width="700"/>
 
 Def sendEmail
 
-<img src="/images/8sendemail.png" alt="se" width="500"/>
+<img src="/images/8sendemail.png" alt="se" width="700"/>
 
 ## Terraform
 
