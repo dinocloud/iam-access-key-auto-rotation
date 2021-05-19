@@ -14,7 +14,7 @@ Logica de la AWS Lambda Function en Python 3.8 para realizar las siguientes acci
 
 Librerias y clientes de boto3 a usar
 
-<img src="/images/libreriasclientes.png" alt="libimg" width="200"/>
+<img src="/images/libreriasclientes.png" alt="libimg" width="500"/>
 
 
 
