@@ -1,6 +1,6 @@
 ## access key rotation
 variable "input_parameters" { 
-    default = "{\"maxAccessKeyAge\":\"0\"}"
+    default = "{\"maxAccessKeyAge\":\"1\"}"
 }
 
 variable "target_id" {

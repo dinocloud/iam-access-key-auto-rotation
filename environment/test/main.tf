@@ -6,11 +6,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 3.0"
     }
-    
-    postgresql = {
-      source = "cyrilgdn/postgresql"
-      version = "1.13.0-pre1"
-    }
   }
 
   backend "s3" {
@@ -18,13 +13,13 @@ terraform {
     key     = "terraform-access-key-rotation.tfstate"
     region  = "us-east-1"
     encrypt = true
-    profile = "dinocloud"
+    profile = "default"
   }
 }
 
 provider "aws" {
   region  = "us-east-1"
-  profile = "dinocloud"
+  profile = "default"
 }
 
 
