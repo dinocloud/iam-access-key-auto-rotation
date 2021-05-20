@@ -1,6 +1,6 @@
 # AWS - Rotacion de Access Key Automatico (Usando Config Rule)
 
-## Codigo Python
+## Codigo Python 3.8
 
 Logica de la AWS Lambda Function en Python 3.8 para realizar las siguientes acciones:
 
