@@ -1,4 +1,4 @@
-# AWS - Rotacion de Access Key Automatico
+# AWS - Rotacion de Access Key Automatico (Usando Config Rule)
 
 ## Codigo Python
 
