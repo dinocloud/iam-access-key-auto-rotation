@@ -68,7 +68,7 @@ Modulo de terraform para deployar una solucion para poder rotar las Access Key d
 - AWS Lambda Function ([AWS Lambda Function](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)).
 - AWS IAM Role ([AWS Lambda Execution Role](https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html)).
 - AWS Secret Manager [AWS Secret Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html)
--Python Code con la logica que va a ejecutar la AWS Lambda Function.
+- Python Code
 
 ### Diagrama de la solucion implementada
 
