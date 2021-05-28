@@ -1,6 +1,6 @@
-# AWS - Rotacion de Access Key Automatico
+# AWS - Rotacion de Access Key Automatico (Usando Config Rule)
 
-## Codigo Python
+## Codigo Python 3.8
 
 Logica de la AWS Lambda Function en Python 3.8 para realizar las siguientes acciones:
 
@@ -65,10 +65,10 @@ Modulo de terraform para deployar una solucion para poder rotar las Access Key d
 - AWS Config Rule ([access-key-rotated](https://docs.aws.amazon.com/config/latest/developerguide/access-keys-rotated.html)).
 - AWS CloudWatch Event y Event Rule ([AWS CloudWatch Event](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html)).
 - AWS SNS Topic ([AWS SNS Topic](https://docs.aws.amazon.com/sns/latest/dg/welcome.html)).
-- AWS Lambda Fuction ([AWS Lambda Fuction](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)).
+- AWS Lambda Function ([AWS Lambda Function](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)).
 - AWS IAM Role ([AWS Lambda Execution Role](https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html)).
 - AWS Secret Manager [AWS Secret Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html)
--Python Code con la logica que va a ejecutar la AWS Lambda Fuction.
+- Python Code
 
 ### Diagrama de la solucion implementada
 
