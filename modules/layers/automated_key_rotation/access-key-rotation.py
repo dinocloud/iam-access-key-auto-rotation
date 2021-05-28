@@ -71,6 +71,7 @@ def lambda_handler(event, context):
 def getUser(resourceId):
     response = iam_client.list_users()
     for user in response['Users']:
+        # BUSCAR TAGS SIMIL A LA FUNCION DEL MAIL
         if user['UserId'] == resourceId and user['UserName'] in include_users: 
             return user['UserName']
          
