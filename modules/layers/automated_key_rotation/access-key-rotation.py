@@ -10,7 +10,7 @@ sm_client = boto3.client('secretsmanager')
 # Lista de usuarios a excluir en la rotacion automatica, separados por comas
 exclude_users=[""]
 # Lista de usuarios a incluir en la rotacion automatica, separados por comas
-include_users=["AWSUserAccessKeysRotationPoC"] 
+include_users=[""] 
 
 # Metodo que procesa todos los eventos
 def lambda_handler(event, context):
@@ -180,7 +180,7 @@ def sendMail(mail, username, disable_key, delete_key):
     if (delete_key != ""):
         delete_key = delete_key['AccessKeyId']
 
-    SENDER = "pedro.bratti@dinocloudconsulting.com" #TODO: change sender
+    SENDER = "sol.malisani@dinocloudconsulting.com" #TODO: change sender
     CHARSET = "UTF-8"
     SUBJECT = "Sus Access Keys han sido rotadas de forma automática"
     RECIPIENT = mail

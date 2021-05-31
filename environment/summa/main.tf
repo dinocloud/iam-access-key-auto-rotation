@@ -9,10 +9,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "terraform-access-key-rotation"
+    bucket  = "dinocloud-terraform-infra/access-key-rotation/"
     key     = "terraform-access-key-rotation.tfstate"
     region  = "us-east-1"
-    encrypt = true
+    # encrypt = true
     profile = "default"
   }
 }
@@ -25,9 +25,11 @@ provider "aws" {
 
 locals {
    tags = {
-    createdBy   = "DinoCloud-pedro-sol"
-    env         = "Production"
-    purpose     = "Access Key Rotation"
+    owner       = "summa"
+    environment = "prod"
+    project     = "Summa"
+    name        = "access-key-rotation"
+    contact     = "dinocloud"
     Terraform   = true
   }
 
