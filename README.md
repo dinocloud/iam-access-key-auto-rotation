@@ -82,9 +82,9 @@ Solucion Propuesta:
 
 3. A AWS CloudWatch Event le vamos a asignar un Target que va a ser nuestro SNS Topic para entregarle el objeto JSON capturado de la AWS Config Rule.
 
-4. El SNS Topic se configura para que triggeree la AWS Lambda Fuction, de esta forma el SNS Topic le va a entregar el objeto JSON a la función con la información que necesita.
+4. El SNS Topic se configura para que triggeree la AWS Lambda Function, de esta forma el SNS Topic le va a entregar el objeto JSON a la función con la información que necesita.
 
-5. La AWS Lambda Fuction va a parsear el objeto JSON recibido por el SNS Topic hasta obtener el resourceId del usuario capturado por la AWS Config Rule. El resourceId es un dato que solo podemos ver a nivel programatico o de api call, es un identifier de cada usuario de IAM.
+5. La AWS Lambda Function va a parsear el objeto JSON recibido por el SNS Topic hasta obtener el resourceId del usuario capturado por la AWS Config Rule. El resourceId es un dato que solo podemos ver a nivel programatico o de api call, es un identifier de cada usuario de IAM.
 
 ### Terraform Estructura Modulos
 
@@ -131,6 +131,14 @@ La estrategia implementada en Terraform tiene 3 tiers:
 2. Segundo Tier: Denominado bajo la carpeta [layer](https://github.com/dinocloud/iam-access-key-auto-rotation/tree/master/modules/layers), vamos a tener declarado la llamada de cada modulo.
 
 3. Tercer Tier: Denominado bajo la carpeta [environment](https://github.com/dinocloud/iam-access-key-auto-rotation/tree/master/environment/), vamos a tener el modulo de la solucion con todas las llamadas a los modulos definidos en la carpeta [layer](https://github.com/dinocloud/iam-access-key-auto-rotation/tree/master/modules/layers) que necesitemos para despleglar toda la solucion. Este ultimo tier lo que nos permite es desplegar la infraestructura para cada ambiente, cada capeta que creemos debajo de environment va a ser una instancia de nuestra infraestructura y vamos a poder injectarle distintas variables de entorno para usarla en workloads de dev, stage o prod.
+
+
+### Consideraciones:
+
+
+1. Cada vez que se cree un usuario de IAM nuevo se debe tener en cuenta que tienen que crear el tag “mail” y en el valor ingresar el mail del usuario
+2. Luego de la creación del usuario de IAM con su respectivo tag se debe ingresar a SES y crear una direccion de email verificada (SES > Panel de la Izq > Email Adresses > “Verify New Email Adress) o agregarlo en el array en terraform y hacer un nuevo apply. 
+3. Luego de registrarlo en SES debemos agregarlo al array en la funcion python contenida en la Lambda (se está trabajando en un próximo update para eliminar este paso) ya sea en include_user o exclude_user.
 
 
 ### Requerimientos
